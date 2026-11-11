@@ -1,0 +1,41 @@
+# Blueprint do Render: cria o backend (Spring Boot) no plano gratuito.
+# O banco fica no Neon e os arquivos no Cloudflare R2 (ambos gratuitos). Veja DEPLOY.md.
+services:
+  - type: web
+    name: felipe-area-membros-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/site
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USER
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: EDUZZ_WEBHOOK_TOKEN
+        generateValue: true
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_BUCKET
+        value: felipe-area-membros
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: MAX_VIDEO_MB
+        value: "500"
+      - key: MAX_UPLOAD
+        value: 500MB

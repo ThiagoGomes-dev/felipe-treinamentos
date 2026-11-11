@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: area-membros
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:file:./data/area-membros;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
+    username: ${DATABASE_USER:sa}
+    password: ${DATABASE_PASSWORD:}
+  servlet:
+    multipart:
+      # Tamanho máximo de um envio (vídeos). Ajuste junto com app.armazenamento.max-video-mb.
+      max-file-size: ${MAX_UPLOAD:2GB}
+      max-request-size: ${MAX_UPLOAD:2GB}
+      file-size-threshold: 1MB
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  mail:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+
+app:
+  # Endereço público do site (vai no e-mail de boas-vindas).
+  url-publica: ${APP_URL:http://localhost:5173}
+  email-remetente: ${EMAIL_FROM:contato@felipetrainer.com.br}
+  jwt:
+    # Troque em produção: precisa ter pelo menos 32 caracteres.
+    segredo: ${JWT_SECRET:troque-este-segredo-em-producao-0123456789abcdef}
+    horas-validade: 72
+  admin:
+    # Usuário admin criado na primeira vez que o sistema sobe.
+    email: ${ADMIN_EMAIL:admin@felipetrainer.com.br}
+    senha: ${ADMIN_PASSWORD:admin123}
+  eduzz:
+    # Token que precisa vir na URL do webhook: /api/webhooks/eduzz?token=...
+    webhook-token: ${EDUZZ_WEBHOOK_TOKEN:troque-este-token}
+  armazenamento:
+    # Pasta onde ficam as imagens e vídeos enviados. Faça backup dela!
+    pasta: ${UPLOADS_DIR:./uploads}
+    max-imagem-mb: 15
+    max-video-mb: ${MAX_VIDEO_MB:2048}
+    # Cloudflare R2: preencha para guardar os arquivos lá em vez da pasta acima.
+    r2:
+      conta-id: ${R2_ACCOUNT_ID:}
+      bucket: ${R2_BUCKET:}
+      chave-acesso: ${R2_ACCESS_KEY_ID:}
+      chave-secreta: ${R2_SECRET_ACCESS_KEY:}
+  # Domínios do frontend que podem chamar a API (ex.: https://felipe.vercel.app). Separe por vírgula.
+  cors-origens: ${CORS_ORIGINS:http://localhost:5173}
+  # Cria um curso de exemplo com módulos (Joelho forte, Glúteo forte...) se o banco estiver vazio.
+  dados-exemplo: ${DADOS_EXEMPLO:true}

@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --color-fundo: #09090a;
+  --color-painel: #131314;
+  --color-painel-2: #1b1b1d;
+  --color-linha: #2a2a2d;
+  --color-suave: #a09c9c;
+  --color-destaque: var(--destaque, #e3161b);
+  --color-sobre-destaque: var(--sobre-destaque, #ffffff);
+}
+
+:root {
+  --destaque: #e3161b;
+  --sobre-destaque: #ffffff;
+  color-scheme: dark;
+}
+
+html, body {
+  background: var(--color-fundo);
+  color: #f2f3f5;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Títulos esportivos: condensado, itálico, caixa alta */
+.titulo-esporte {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.9;
+}
+
+/* Faixa diagonal de fundo, assinatura visual do site */
+.faixas {
+  background-image: repeating-linear-gradient(-55deg, color-mix(in oklab, var(--destaque) 12%, transparent) 0 2px, transparent 2px 14px);
+}
+
+/* Componentes ficam na camada "components" para as classes utilitárias poderem ajustá-los. */
+@layer components {
+.campo {
+  @apply w-full rounded-lg border border-linha bg-fundo px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-suave/60 focus:border-destaque;
+}
+.botao {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-destaque px-5 py-3 text-sm font-bold text-sobre-destaque transition hover:brightness-110 disabled:opacity-50;
+}
+.botao-sec {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-linha bg-painel-2 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/30;
+}
+.botao-mini {
+  @apply inline-flex items-center gap-1.5 rounded-md border border-linha px-2.5 py-1.5 text-xs font-medium text-suave transition hover:border-white/40 hover:text-white disabled:opacity-50;
+}
+.botao-perigo {
+  @apply inline-flex items-center gap-1.5 rounded-md border border-red-500/30 px-2.5 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/10;
+}
+.etiqueta {
+  @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide;
+}
+}
