@@ -2,8 +2,7 @@
 
 | Parte | Onde | Custo |
 |---|---|---|
-| Site (React) | **Vercel** | grátis |
-| Backend (Spring Boot) | **Render**, plano Free | grátis |
+| Site (React) + backend (Spring Boot) | **Render**, plano Free (o mesmo serviço entrega os dois) | grátis |
 | Banco (PostgreSQL) | **Supabase**, plano Free (o mesmo do projeto ADOM) | grátis |
 | Imagens (capas) | dentro do banco | grátis |
 | Vídeos | **YouTube** (não listado) ou Vimeo, colando o link no painel | grátis |
@@ -47,15 +46,17 @@ Não precisa criar tabelas: o backend cria tudo sozinho na primeira subida.
 | `DATABASE_PASSWORD` | a senha do banco do Supabase |
 | `ADMIN_EMAIL` | o seu e-mail de admin |
 | `ADMIN_PASSWORD` | uma senha forte para o seu admin |
-| `CORS_ORIGINS` | por enquanto `https://*.vercel.app` (no passo 4 você troca pelo endereço certo) |
-| `APP_URL` | por enquanto `https://felipe.vercel.app` (troca no passo 4) |
+| `CORS_ORIGINS` | só usado com a Vercel: `https://*.vercel.app` (no passo 4 você troca pelo endereço certo) |
+| `APP_URL` | o endereço do site: o do próprio Render (`https://SEU-SERVICO.onrender.com`) ou o da Vercel |
 
    `JWT_SECRET` e `EDUZZ_WEBHOOK_TOKEN` são gerados sozinhos. `IMAGENS_NO_BANCO` e `UPLOAD_VIDEO` já vêm preenchidos.
 4. O primeiro build leva de 5 a 10 minutos. Quando terminar, copie o endereço do serviço:
    📝 `https://felipe-area-membros-api.onrender.com` (o seu pode ter um final diferente).
 5. Teste abrindo `https://SEU-BACKEND.onrender.com/api/site`. Tem que aparecer um texto com o nome do site.
 
-## 3. Site na Vercel
+## 3. (Opcional) Site na Vercel
+
+O Render já entrega o site completo no endereço `.onrender.com`. Só use a Vercel se quiser o site separado do backend. Sem a Vercel, pule para o passo 5 e use o endereço do Render em `APP_URL`.
 
 1. Entre em https://vercel.com com a conta do GitHub.
 2. **Add New** → **Project**, importe `felipe-treinamentos`.
@@ -64,7 +65,7 @@ Não precisa criar tabelas: o backend cria tudo sozinho na primeira subida.
    - `VITE_API_URL` = o endereço do backend do passo 2, sem barra no final
 5. Clique em **Deploy**. No fim, copie o 📝 endereço do site, ex.: `https://felipe-treinamentos.vercel.app`.
 
-## 4. Acertar os endereços
+## 4. (Só com a Vercel) Acertar os endereços
 
 No Render, em **Environment**, troque:
 
@@ -75,7 +76,7 @@ Salve. O Render reinicia sozinho.
 
 ## 5. Criar o login do cliente
 
-1. Abra o site da Vercel e entre com `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
+1. Abra o site (endereço do Render ou da Vercel) e entre com `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
 2. Vá em **Painel → Usuários e acessos** e clique em **Novo usuário**:
    - Para o Felipe cuidar do conteúdo: papel **Admin**.
    - Para ele ver como aluno: papel **Aluno** e marque os cursos.
