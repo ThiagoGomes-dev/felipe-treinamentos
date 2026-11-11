@@ -11,6 +11,11 @@ spring:
       max-file-size: ${MAX_UPLOAD:2GB}
       max-request-size: ${MAX_UPLOAD:2GB}
       file-size-threshold: 1MB
+  flyway:
+    # Bancos como o Supabase já vêm com objetos no schema public: começa o histórico
+    # na versão 0 para que todas as migrações (V1, V2...) rodem normalmente.
+    baseline-on-migrate: true
+    baseline-version: 0
   jpa:
     hibernate:
       ddl-auto: validate
