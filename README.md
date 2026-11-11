@@ -63,7 +63,7 @@ Antes, coloque `777` no campo "Código do produto na Eduzz" do curso, no painel.
 
 ## Produção
 
-**Para colocar no ar de graça (Vercel + Render + Neon), siga o [DEPLOY.md](DEPLOY.md).**
+**Para colocar no ar de graça (Vercel + Render + Supabase), siga o [DEPLOY.md](DEPLOY.md).**
 
 Com Docker, num servidor próprio:
 

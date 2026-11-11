@@ -4,14 +4,15 @@
 |---|---|---|
 | Site (React) | **Vercel** | grátis |
 | Backend (Spring Boot) | **Render**, plano Free | grátis |
-| Banco (PostgreSQL) | **Neon**, plano Free | grátis |
-| Imagens (capas) | dentro do banco Neon | grátis |
+| Banco (PostgreSQL) | **Supabase**, plano Free (o mesmo do projeto ADOM) | grátis |
+| Imagens (capas) | dentro do banco | grátis |
 | Vídeos | **YouTube** (não listado) ou Vimeo, colando o link no painel | grátis |
 
 O código está em https://github.com/ThiagoGomes-dev/felipe-treinamentos
 
-Limitações do plano grátis do Render:
+Limitações do plano grátis:
 
+- No Supabase grátis, o projeto pausa depois de 7 dias sem nenhum acesso. Para voltar, clique em "Restore" no painel do Supabase.
 - O backend "dorme" depois de 15 minutos sem uso, e o primeiro acesso depois disso demora uns 50 segundos.
 - O disco é apagado a cada reinício. Por isso, nesta versão as imagens ficam no banco e o envio de arquivo de vídeo fica desligado: no painel, cole o link do YouTube (não listado) ou do Vimeo no vídeo. Quem tiver o link consegue abrir o vídeo fora do site.
 
@@ -21,17 +22,17 @@ Faça na ordem abaixo. Guarde num bloco de notas os valores marcados com 📝.
 
 ---
 
-## 1. Banco no Neon
+## 1. Banco no Supabase
 
-1. Entre em https://neon.tech e crie a conta (dá para entrar com o GitHub).
-2. Crie um projeto: nome `felipe-area-membros`, Postgres 17, região **AWS US East (N. Virginia)** (fica perto do Render).
-3. Na tela do projeto, clique em **Connect**. Desligue a opção "Connection pooling" e copie os dados:
-   - 📝 **Host**, algo como `ep-xxxx-123456.us-east-1.aws.neon.tech`
-   - 📝 **Database**, normalmente `neondb`
-   - 📝 **Role** (usuário), normalmente `neondb_owner`
-   - 📝 **Password**
-4. Monte a URL do banco assim, trocando HOST e DATABASE:
-   📝 `jdbc:postgresql://HOST/DATABASE?sslmode=require`
+1. Entre em https://supabase.com/dashboard e clique em **New project**. Use um projeto separado do ADOM para os dados não se misturarem (o plano grátis permite 2 projetos ativos).
+2. Nome `felipe-area-membros`, região **East US (North Virginia)** (fica perto do Render). Crie uma senha forte para o banco. 📝 **senha do banco**.
+3. Quando o projeto terminar de criar, clique em **Connect** (no topo) e escolha **Session pooler**. A conexão "Direct" não funciona no Render. Copie:
+   - 📝 **host**, algo como `aws-0-us-east-1.pooler.supabase.com`
+   - 📝 **user**, algo como `postgres.abcdefghijklmnop`
+4. Monte a URL do banco assim, trocando HOST:
+   📝 `jdbc:postgresql://HOST:5432/postgres?sslmode=require`
+
+Não precisa criar tabelas: o backend cria tudo sozinho na primeira subida.
 
 ## 2. Backend no Render
 
@@ -42,8 +43,8 @@ Faça na ordem abaixo. Guarde num bloco de notas os valores marcados com 📝.
 | Variável | Valor |
 |---|---|
 | `DATABASE_URL` | a URL `jdbc:postgresql://...` do passo 1 |
-| `DATABASE_USER` | o Role do Neon |
-| `DATABASE_PASSWORD` | a senha do Neon |
+| `DATABASE_USER` | o user do Supabase (`postgres.xxxx`) |
+| `DATABASE_PASSWORD` | a senha do banco do Supabase |
 | `ADMIN_EMAIL` | o seu e-mail de admin |
 | `ADMIN_PASSWORD` | uma senha forte para o seu admin |
 | `CORS_ORIGINS` | por enquanto `https://*.vercel.app` (no passo 4 você troca pelo endereço certo) |

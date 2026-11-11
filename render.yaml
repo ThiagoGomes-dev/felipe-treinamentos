@@ -1,5 +1,5 @@
 # Blueprint do Render: cria o backend (Spring Boot) no plano gratuito.
-# O banco fica no Neon (Postgres gratuito). Veja DEPLOY.md.
+# O banco fica no Supabase (Postgres gratuito). Veja DEPLOY.md.
 services:
   - type: web
     name: felipe-area-membros-api
