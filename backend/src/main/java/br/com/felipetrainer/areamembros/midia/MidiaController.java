@@ -1,7 +1,7 @@
 package br.com.felipetrainer.areamembros.midia;
 
-import java.net.URI;
 import java.time.Duration;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Entrega as imagens e vídeos guardados no servidor. Imagens são abertas; vídeos exigem o
+ * Entrega as imagens e vídeos guardados no servidor (disco ou banco). Imagens são abertas; vídeos exigem o
  * link assinado. O Spring responde a pedidos parciais (Range), então dá para avançar o vídeo.
  */
 @RestController
@@ -31,20 +31,14 @@ public class MidiaController {
         if (a == null) return ResponseEntity.notFound().build();
         if (!a.isImagem() && !tokens.valido(id, token)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
-        if (armazenamento.usaR2()) {
-            // O arquivo vem direto do R2 por um link temporário (o servidor não gasta banda).
-            Duration validade = a.isImagem() ? Duration.ofDays(1) : Duration.ofHours(6);
-            CacheControl cacheRedirect = a.isImagem()
-                    ? CacheControl.maxAge(Duration.ofHours(12)).cachePublic()
-                    : CacheControl.noStore();
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(armazenamento.linkR2(a, validade)))
-                    .cacheControl(cacheRedirect)
-                    .build();
+        Resource arquivo;
+        if (a.isNoBanco()) {
+            arquivo = new ByteArrayResource(a.getDados());
+        } else {
+            FileSystemResource noDisco = new FileSystemResource(armazenamento.caminho(a));
+            if (!noDisco.exists()) return ResponseEntity.notFound().build();
+            arquivo = noDisco;
         }
-
-        FileSystemResource arquivo = new FileSystemResource(armazenamento.caminho(a));
-        if (!arquivo.exists()) return ResponseEntity.notFound().build();
 
         CacheControl cache = a.isImagem()
                 ? CacheControl.maxAge(Duration.ofDays(30)).cachePublic().immutable()

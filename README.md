@@ -9,7 +9,7 @@ A venda acontece na Eduzz; o site só recebe o aviso da compra e libera o acesso
 - **Liberação por usuário.** O aluno só assiste aos cursos liberados para ele. Os outros aparecem bloqueados, com o link da página de venda.
 - **Compra na Eduzz.** A Eduzz avisa o site (webhook). O site cria o aluno (se for novo), libera o curso ligado ao código do produto e manda o e-mail com o link, o login e a senha provisória (data de nascimento, `ddmmaaaa`; sem a data, gera uma senha aleatória). Reembolso ou cancelamento bloqueia só aquele curso.
 - **Primeiro acesso:** o aluno é obrigado a criar uma senha nova.
-- **Imagens e vídeos no Cloudflare R2 ou no próprio servidor.** O admin envia pelo painel (com barra de progresso), troca e exclui. Com as variáveis `R2_*` preenchidas, os arquivos vão para o R2; sem elas, ficam na pasta `UPLOADS_DIR`. Ao excluir, o arquivo também é apagado. Os vídeos só abrem com um link assinado que vale 6 horas e só é entregue a quem tem o curso liberado. Também dá para usar link do YouTube ou Vimeo no lugar do arquivo.
+- **Imagens e vídeos no próprio servidor.** O admin envia pelo painel (com barra de progresso), troca e exclui. Os arquivos ficam na pasta `UPLOADS_DIR` e são apagados quando excluídos. Em servidor sem disco fixo (Render grátis), `IMAGENS_NO_BANCO=true` guarda as imagens no banco e `UPLOAD_VIDEO=false` deixa os vídeos só por link. Os vídeos só abrem com um link assinado que vale 6 horas e só é entregue a quem tem o curso liberado. Também dá para usar link do YouTube ou Vimeo no lugar do arquivo.
 - **Painel (`/admin`), só para admins:**
   - *Cursos e conteúdo:* cria e edita cursos, módulos, tópicos e vídeos, e envia as imagens e os vídeos.
   - *Usuários e acessos:* cria alunos e admins, escolhe quais cursos cada aluno pode ver, bloqueia, reenvia o e-mail de acesso e exclui. Admin vê todos os cursos. Ninguém consegue tirar o próprio acesso de admin, e sempre sobra pelo menos um admin ativo.
@@ -63,7 +63,7 @@ Antes, coloque `777` no campo "Código do produto na Eduzz" do curso, no painel.
 
 ## Produção
 
-**Para colocar no ar de graça (Vercel + Render + Neon + Cloudflare R2), siga o [DEPLOY.md](DEPLOY.md).**
+**Para colocar no ar de graça (Vercel + Render + Neon), siga o [DEPLOY.md](DEPLOY.md).**
 
 Com Docker, num servidor próprio:
 
@@ -82,7 +82,8 @@ Antes, troque no `docker-compose.yml` todas as senhas e segredos. Variáveis pri
 | `EDUZZ_WEBHOOK_TOKEN` | Token que precisa vir na URL do webhook |
 | `UPLOADS_DIR` | Pasta das imagens e vídeos enviados (faça backup dela junto com o banco) |
 | `MAX_UPLOAD`, `MAX_VIDEO_MB` | Tamanho máximo de um vídeo (padrão 2 GB) |
-| `R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Guardar imagens e vídeos no Cloudflare R2 |
+| `IMAGENS_NO_BANCO` | `true` guarda as imagens no banco (servidor sem disco fixo) |
+| `UPLOAD_VIDEO` | `false` desliga o envio de arquivo de vídeo (só link do YouTube/Vimeo) |
 | `CORS_ORIGINS` | Endereço do site quando ele fica em outro domínio (ex.: Vercel) |
 | `VITE_API_URL` | (no build do frontend) endereço do backend, quando ele fica em outro domínio |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` | Envio de e-mail |
@@ -97,7 +98,7 @@ https://SEU-DOMINIO/api/webhooks/eduzz?token=VALOR_DE_EDUZZ_WEBHOOK_TOKEN
 
 1. **Conferir o formato do aviso da Eduzz.** O webhook aceita o formato antigo (formulário: `trans_cod`, `trans_status`, `cus_email`...) e JSON, mas os nomes dos campos e os códigos de status precisam ser conferidos com um aviso real da conta do Felipe. O log mostra o que chegou; os ajustes ficam em `backend/.../eduzz/EduzzEvento.java`.
 2. **Data de nascimento no checkout.** Verificar se a Eduzz manda esse campo. Se não mandar, a senha provisória é aleatória (vai no e-mail do mesmo jeito).
-3. **Espaço dos vídeos.** No R2 grátis cabem 10 GB; acima disso a Cloudflare cobra US$ 0,015 por GB/mês, sem custo de tráfego.
+3. **Espaço e banda dos vídeos.** Com envio pelo painel, os vídeos ficam no disco do servidor e são entregues por ele: confira o espaço e o tráfego do plano. Se crescer, dá para mover para um armazenamento como S3, Cloudflare R2 ou Bunny sem mudar as telas.
 4. **Proxy na frente (Nginx etc.):** libere envios grandes (ex.: `client_max_body_size 2g;`).
 5. **SMTP** para os e-mails (ex.: Amazon SES, Brevo, Resend, Gmail Workspace).
 

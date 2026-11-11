@@ -48,12 +48,10 @@ app:
     pasta: ${UPLOADS_DIR:./uploads}
     max-imagem-mb: 15
     max-video-mb: ${MAX_VIDEO_MB:2048}
-    # Cloudflare R2: preencha para guardar os arquivos lá em vez da pasta acima.
-    r2:
-      conta-id: ${R2_ACCOUNT_ID:}
-      bucket: ${R2_BUCKET:}
-      chave-acesso: ${R2_ACCESS_KEY_ID:}
-      chave-secreta: ${R2_SECRET_ACCESS_KEY:}
+    # Guarda as imagens dentro do banco (use true em servidor sem disco fixo, ex.: Render grátis).
+    imagens-no-banco: ${IMAGENS_NO_BANCO:false}
+    # false = não aceita envio de arquivo de vídeo, só link do YouTube/Vimeo.
+    upload-video: ${UPLOAD_VIDEO:true}
   # Domínios do frontend que podem chamar a API (ex.: https://felipe.vercel.app). Separe por vírgula.
   cors-origens: ${CORS_ORIGINS:http://localhost:5173}
   # Cria um curso de exemplo com módulos (Joelho forte, Glúteo forte...) se o banco estiver vazio.

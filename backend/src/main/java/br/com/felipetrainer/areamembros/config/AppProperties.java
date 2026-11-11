@@ -20,15 +20,9 @@ public record AppProperties(
     public record Eduzz(String webhookToken) {}
 
     /**
-     * Onde ficam as imagens e vídeos enviados pelo painel: na pasta do servidor ou,
-     * se o R2 estiver configurado, no Cloudflare R2.
+     * Onde ficam as imagens e vídeos enviados pelo painel.
+     * imagensNoBanco: guarda as imagens no próprio banco (para servidores sem disco fixo, como o Render grátis).
+     * uploadVideo: false bloqueia o envio de arquivos de vídeo (aí os vídeos entram por link do YouTube/Vimeo).
      */
-    public record Armazenamento(String pasta, long maxImagemMb, long maxVideoMb, R2 r2) {}
-
-    /** Cloudflare R2. Fica desligado enquanto contaId ou bucket estiverem vazios. */
-    public record R2(String contaId, String bucket, String chaveAcesso, String chaveSecreta) {
-        public boolean ativo() {
-            return contaId != null && !contaId.isBlank() && bucket != null && !bucket.isBlank();
-        }
-    }
+    public record Armazenamento(String pasta, long maxImagemMb, long maxVideoMb, boolean imagensNoBanco, boolean uploadVideo) {}
 }

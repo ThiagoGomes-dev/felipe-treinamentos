@@ -1,5 +1,5 @@
 # Blueprint do Render: cria o backend (Spring Boot) no plano gratuito.
-# O banco fica no Neon e os arquivos no Cloudflare R2 (ambos gratuitos). Veja DEPLOY.md.
+# O banco fica no Neon (Postgres gratuito). Veja DEPLOY.md.
 services:
   - type: web
     name: felipe-area-membros-api
@@ -27,15 +27,11 @@ services:
         generateValue: true
       - key: EDUZZ_WEBHOOK_TOKEN
         generateValue: true
-      - key: R2_ACCOUNT_ID
-        sync: false
-      - key: R2_BUCKET
-        value: felipe-area-membros
-      - key: R2_ACCESS_KEY_ID
-        sync: false
-      - key: R2_SECRET_ACCESS_KEY
-        sync: false
-      - key: MAX_VIDEO_MB
-        value: "500"
+      # O disco do Render grátis é apagado a cada reinício: imagens vão para o banco
+      # e os vídeos entram por link do YouTube (não listado) ou Vimeo.
+      - key: IMAGENS_NO_BANCO
+        value: "true"
+      - key: UPLOAD_VIDEO
+        value: "false"
       - key: MAX_UPLOAD
-        value: 500MB
+        value: 20MB

@@ -17,8 +17,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Guarda imagens e vídeos no Cloudflare R2 (se configurado) ou numa pasta do servidor
- * (app.armazenamento.pasta). Os arquivos ficam em AAAA/MM/uuid.ext e o banco guarda só os dados.
+ * Guarda imagens e vídeos numa pasta do servidor (app.armazenamento.pasta), em AAAA/MM/uuid.ext.
+ * Com app.armazenamento.imagens-no-banco, as imagens ficam dentro do banco (servidor sem disco fixo).
  */
 @Service
 public class ArmazenamentoService {
@@ -36,28 +36,26 @@ public class ArmazenamentoService {
     private final Path raiz;
     private final long maxImagem;
     private final long maxVideo;
-    /** Nulo quando os arquivos ficam no disco do servidor. */
-    private final ArmazenamentoR2 r2;
+    private final boolean imagensNoBanco;
+    private final boolean uploadVideo;
 
     public ArmazenamentoService(ArquivoRepository arquivos, AppProperties props) throws IOException {
         this.arquivos = arquivos;
         this.raiz = Path.of(props.armazenamento().pasta()).toAbsolutePath().normalize();
         this.maxImagem = props.armazenamento().maxImagemMb() * 1024 * 1024;
         this.maxVideo = props.armazenamento().maxVideoMb() * 1024 * 1024;
-        AppProperties.R2 cfgR2 = props.armazenamento().r2();
-        if (cfgR2 != null && cfgR2.ativo()) {
-            this.r2 = new ArmazenamentoR2(cfgR2);
-            log.info("Arquivos enviados ficam no Cloudflare R2, bucket {}", r2.bucket());
-        } else {
-            this.r2 = null;
-            Files.createDirectories(raiz);
-            log.info("Arquivos enviados ficam em {}", raiz);
-        }
+        this.imagensNoBanco = props.armazenamento().imagensNoBanco();
+        this.uploadVideo = props.armazenamento().uploadVideo();
+        Files.createDirectories(raiz);
+        log.info("Arquivos enviados ficam em {}{}", raiz, imagensNoBanco ? " (imagens no banco)" : "");
     }
 
     /** Salva o arquivo no disco e registra no banco. Retorna o registro. */
     public Arquivo salvar(MultipartFile arquivo, Tipo tipo) {
         if (arquivo == null || arquivo.isEmpty()) throw new RegraException("Nenhum arquivo enviado");
+        if (tipo == Tipo.VIDEO && !uploadVideo) {
+            throw new RegraException("Neste servidor os vídeos entram por link: cole o link do YouTube (não listado) ou do Vimeo");
+        }
         Map<String, String> aceitos = tipo == Tipo.IMAGEM ? IMAGENS : VIDEOS;
         String contentType = Optional.ofNullable(arquivo.getContentType()).orElse("").toLowerCase();
         if (!aceitos.containsKey(contentType)) {
@@ -78,23 +76,25 @@ public class ArmazenamentoService {
         String id = UUID.randomUUID().toString();
         LocalDate hoje = LocalDate.now();
         String relativo = "%d/%02d/%s.%s".formatted(hoje.getYear(), hoje.getMonthValue(), id, ext);
-        try {
-            if (r2 != null) {
-                r2.gravar(relativo, arquivo.getInputStream(), arquivo.getSize(), contentType);
-            } else {
-                Path destino = raiz.resolve(relativo);
-                Files.createDirectories(destino.getParent());
-                arquivo.transferTo(destino);
+        String nome = Optional.ofNullable(arquivo.getOriginalFilename()).orElse("arquivo." + ext);
+        if (tipo == Tipo.IMAGEM && imagensNoBanco) {
+            try {
+                return arquivos.save(new Arquivo(id, nome, contentType, arquivo.getSize(), "banco/" + relativo, arquivo.getBytes()));
+            } catch (IOException e) {
+                throw new RegraException("Não consegui ler a imagem enviada. Tente de novo.");
             }
-        } catch (IOException | RuntimeException e) {
+        }
+        try {
+            Path destino = raiz.resolve(relativo);
+            Files.createDirectories(destino.getParent());
+            arquivo.transferTo(destino);
+        } catch (IOException e) {
             log.error("Falha ao salvar o arquivo {}", relativo, e);
             throw new RegraException("Não consegui salvar o arquivo. Tente de novo em instantes.");
         }
-        // Se a transação der errado, apaga o arquivo para não sobrar lixo.
+        // Se a transação der errado, apaga o arquivo do disco para não sobrar lixo.
         aoDesfazer(() -> apagarDoDisco(relativo));
-
-        String nome = Optional.ofNullable(arquivo.getOriginalFilename()).orElse("arquivo." + ext);
-        return arquivos.save(new Arquivo(id, nome, contentType, arquivo.getSize(), relativo));
+        return arquivos.save(new Arquivo(id, nome, contentType, arquivo.getSize(), relativo, null));
     }
 
     /** Remove o registro e, depois que a transação confirmar, o arquivo do disco. Ignora id nulo. */
@@ -102,7 +102,7 @@ public class ArmazenamentoService {
         if (id == null) return;
         arquivos.findById(id).ifPresent(a -> {
             arquivos.delete(a);
-            aoConfirmar(() -> apagarDoDisco(a.getCaminho()));
+            if (!a.isNoBanco()) aoConfirmar(() -> apagarDoDisco(a.getCaminho()));
         });
     }
 
@@ -119,15 +119,6 @@ public class ArmazenamentoService {
         return arquivos.findById(id);
     }
 
-    /** True quando os arquivos estão no R2 (o controller redireciona para um link temporário). */
-    public boolean usaR2() {
-        return r2 != null;
-    }
-
-    public String linkR2(Arquivo a, java.time.Duration validade) {
-        return r2.link(a.getCaminho(), validade);
-    }
-
     public Path caminho(Arquivo a) {
         Path p = raiz.resolve(a.getCaminho()).normalize();
         if (!p.startsWith(raiz)) throw new IllegalStateException("Caminho inválido");
@@ -136,9 +127,8 @@ public class ArmazenamentoService {
 
     private void apagarDoDisco(String relativo) {
         try {
-            if (r2 != null) r2.apagar(relativo);
-            else Files.deleteIfExists(raiz.resolve(relativo));
-        } catch (IOException | RuntimeException e) {
+            Files.deleteIfExists(raiz.resolve(relativo));
+        } catch (IOException e) {
             log.warn("Não consegui apagar {}: {}", relativo, e.getMessage());
         }
     }
